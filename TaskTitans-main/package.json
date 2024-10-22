@@ -1,0 +1,25 @@
+{
+  "name": "test",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.14.13",
+    "email-validator": "^2.0.4",
+    "mongodb": "^6.3.0",
+    "next": "^14.0.3",
+    "next.js": "^1.0.3",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-qr-barcode-scanner": "^2.0.0",
+    "request": "^2.88.2",
+    "requests": "^0.3.0"
+  }
+}
