@@ -30,6 +30,11 @@ const CustomAppBar = () => {
               Register
             </Button>
           </Link>
+          <Link href="/scanner/nutritioninfo">
+            <Button color="warning" style={{ color: '#fff' }}>
+              Info Scanner
+            </Button>
+          </Link>
           {/* Scanner dropdown */}
           <Button
             color="warning"
@@ -38,7 +43,7 @@ const CustomAppBar = () => {
             aria-haspopup="true"
             onClick={handleClick}
           >
-            Scanner
+            Intake Calculator
           </Button>
           <Menu
             id="scanner-menu"
