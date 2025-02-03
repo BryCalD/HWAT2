@@ -10,6 +10,7 @@ import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 
+
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import {ThemeProvider } from '@mui/material/styles';
@@ -38,12 +39,16 @@ export default function Page() {
   async function runDBCallAsync(url) {
     const res = await fetch(url);
     const data = await res.json();
-    if(data.data== "true"){
-    console.log("registered")
+
+    if (data.data === "User registered successfully") {
+        console.log("User registered successfully");
+        window.location = "/login";
     } else {
-    console.log("not registered ")
+        console.log("Error registering user:", data.data);
+        // Handle error case appropriately, such as displaying an error message to the user
     }
-    }
+}
+
 
 
     const validateForm = (event) => {
@@ -53,20 +58,23 @@ export default function Page() {
       let email = data.get('email')
       // pull in the validator
       var validator = require("email-validator");
+
+      // Validate the nickname
+      let nick = data.get('nick')
+      if(nick.length ==0){
+      errorMessage += ' No nickname added, ';
+      }
+      
       // Validate the password
       let pass = data.get('pass')
       if(pass.length ==0){
       errorMessage += ' No password added, ';
       }
-      // Validate the dob
-      let dob = data.get('dob')
-      if(dob.length ==0){
-      errorMessage += ' No Date of Birth added, ';
-      }
+      
       // run the validator
       let emailCheck = validator.validate(email);
       // print the status true or false
-      console.log("email status" +emailCheck);
+      console.log("email status: " +emailCheck);
       // if it is false, add to the error message.
       if(emailCheck == false){
       errorMessage += 'Incorrect email';
@@ -95,14 +103,14 @@ export default function Page() {
     // if we do not get an error
     const data = new FormData(event.currentTarget);
     let email = data.get('email')
+    let nick = data.get('nick')
     let pass = data.get('pass')
-    let dob = data.get('dob')
     console.log("Sent email:" + email)
+    console.log("Sent nickname:" + nick)
     console.log("Sent pass:" + pass)
-    console.log("Sent dob:" + pass)
     console.log("calling db");
 
-    runDBCallAsync(`api/register/?email=${email}&pass=${pass}&dob=${dob}`)
+    runDBCallAsync(`api/register/?email=${email}&nick=${nick}&pass=${pass}`)
 
     }; // end error if
   }//end handler
@@ -133,7 +141,8 @@ setOpen(false);
 const [errorHolder, setErrorHolder] = React.useState(false);
 
 const backgroundStyle = {
-  backgroundSize: 'cover',
+  backgroundImage: `url(${'/LogRegBG.png'})`,
+  backgroundSize: 'cover', 
   backgroundRepeat: 'no-repeat',
   height: '100vh',
   display: 'flex',
@@ -142,6 +151,27 @@ const backgroundStyle = {
   alignItems: 'center',
   textAlign: 'center',
   padding: '50px',
+};
+
+const whitebg = {
+  backgroundImage: ``,
+  backgroundSize: 'cover',
+  backgroundRepeat: 'no-repeat',
+  height: '100vh',
+}
+
+const loginStyle = {
+  backgroundColor: 'rgba(200, 200, 200, 0.8)',
+  borderRadius: '50px', 
+  paddingTop: '1em',
+  paddingleft: '1em',
+  paddingBottom: '4em',
+  paddingRight: '1em',
+  margin: '-4em',
+  
+  marginTop: '1em',
+  backdropFilter: 'blur(2px)',
+  border: '3px solid #1976d2',
 };
   
   return (
@@ -173,6 +203,7 @@ const backgroundStyle = {
       <div style={backgroundStyle}> {}
     <Container component="main"  maxWidth="xs" style={{ marginTop: '80px' }}>
       <CssBaseline />
+      <div style={loginStyle}> {}
       <Box
         sx={{
           marginTop: 8,
@@ -181,13 +212,13 @@ const backgroundStyle = {
           alignItems: 'center',
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+        <Avatar src="\..\..\titan.png"sx={{ width: 80, height: 80 }}>
           
         </Avatar>
         <Typography component="h1" variant="h5">
-          Register
+          Good choice! Register here User. <hr></hr>
         </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{mt: 1 }}>
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{m: 1 , ml: 3}}>
             <TextField
               margin="normal"
               required
@@ -202,25 +233,21 @@ const backgroundStyle = {
               margin="normal"
               required
               fullWidth
-              name="pass"
-              label="Pass"
-              type="pass"
-              id="pass"
-              autoComplete="current-password"
+              id="nick"
+              label="Nickname"
+              name="nick"
+              autoComplete="nick"
+              autoFocus
             />
             <TextField
               margin="normal"
               required
               fullWidth
-              name="dob"
-              label="dob"
-              type="text"
-              id="dob"
-              autoComplete=""
-            />
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
+              name="pass"
+              label="Password"
+              type="password"
+              id="pass"
+              autoComplete="current-password"
             />
             <Button
               type="submit"
@@ -235,11 +262,6 @@ const backgroundStyle = {
 
 
           <Grid container>
-            <Grid item xs>
-              <Link href="#" variant="body2">
-                Forgot password?
-              </Link>
-            </Grid>
             <Grid item>
               <Link href="/login" variant="body2">
                 {"Have an account? Sign In"}
@@ -248,6 +270,7 @@ const backgroundStyle = {
           </Grid>
         </Box>
       </Box>
+      </div>
 
     </Container>
   </div>

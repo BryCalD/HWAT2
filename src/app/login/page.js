@@ -28,26 +28,32 @@ var validator = require("email-validator");
 
 export default function Page() {
 
+
+
   /*
   This function does the actual work
   calling the fetch to get things from the database.
   */ 
   async function runDBCallAsync(url) {
-
-
-    const res = await fetch(url);
-    const data = await res.json();
-
- 
-    if(data.data== "valid"){
-      console.log("login is valid!")
-
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+  
+      console.log("Response from server:", data);
+  
+      if (data.data === true) { // Change this line
+        console.log("Login is valid!");
+        window.location="/..";
+      } else {
+        console.log("Login is not valid");
+        window.location="/login";
+      }
       
-    } else {
-
-      console.log("not valid  ")
+    } catch (error) {
+      console.error("Error fetching data from server:", error);
     }
   }
+  
 
 
   const validateForm = (event) => {
@@ -65,7 +71,7 @@ export default function Page() {
     // run the validator
     let emailCheck = validator.validate(email);
     // print the status true or false
-    console.log("email status" +emailCheck);
+    console.log("email status: " +emailCheck);
     // if it is false, add to the error message.
     if(emailCheck == false){
     errorMessage += ' Incorrect email';
@@ -81,24 +87,25 @@ export default function Page() {
 	const handleSubmit = (event) => {
     console.log("handling submit");
     event.preventDefault();
-    // call out custom validator
+    // call our custom validator
     let errorMessage = validateForm(event);
-    // save the mesage
-    setErrorHolder(errorMessage)
+    // save the message
+    setErrorHolder(errorMessage);
     // if we have an error
-    if(errorMessage.length > 0){
-    setOpen(true);
+    if (errorMessage.length > 0) {
+        setOpen(true);
     } else {
-    // if we do not get an error
-    const data = new FormData(event.currentTarget);
-    let email = data.get('email')
-    let pass = data.get('pass')
-    console.log("Sent email:" + email)
-    console.log("Sent pass:" + pass)
-    console.log("calling db");
-    runDBCallAsync(`api/login?email=${email}&pass=${pass}`)
-    }// error message if
-    }; // end handler
+        // if we do not get an error
+        const data = new FormData(event.currentTarget);
+        let email = data.get('email');
+        let pass = data.get('pass');
+        console.log("Sent email:" + email);
+        console.log("Sent pass:" + pass);
+        console.log("calling db");
+        runDBCallAsync(`api/login?email=${email}&pass=${pass}`);
+    }
+};
+
 
 
 
@@ -126,7 +133,8 @@ export default function Page() {
   const [errorHolder, setErrorHolder] = React.useState(false);
 
   const backgroundStyle = {
-    backgroundSize: 'cover',
+    backgroundImage: `url(${'/LogRegBG.png'})`,
+    backgroundSize: 'cover', 
     backgroundRepeat: 'no-repeat',
     height: '100vh',
     display: 'flex',
@@ -144,7 +152,21 @@ export default function Page() {
     height: '100vh',
   }
 
+  const loginStyle = {
+    backgroundColor: 'rgba(200, 200, 200, 0.8)',
+    borderRadius: '50px', 
+    paddingTop: '1em',
+    paddingleft: '1em',
+    paddingBottom: '4em',
+    paddingRight: '1em',
+    margin: '-10em',
+    marginTop: '6em',
+    backdropFilter: 'blur(2px)',
+    border: '3px solid #1976d2',
+  };
+
   return (
+    
     <ThemeProvider theme={theme}>
       <React.Fragment>
         <Dialog
@@ -172,6 +194,7 @@ export default function Page() {
       <div style={backgroundStyle}> {}
         <Container component="main" maxWidth="xs" style={{...whitebg, marginTop: '80px' }}>
           <CssBaseline />
+          <div style={loginStyle}> {}
           <Box
             sx={{
               marginTop: 8,
@@ -180,11 +203,13 @@ export default function Page() {
               alignItems: 'center',
             }}
           >
-        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+
+        <Avatar src="\..\..\titan.png"sx={{ width: 80, height: 80 }}>
           
         </Avatar>
         <Typography component="h1" variant="h5">
-          Sign in
+          Let's get you signed in, User
+          <hr/>
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
@@ -202,16 +227,12 @@ export default function Page() {
             required
             fullWidth
             name="pass"
-            label="Pass"
-            type="pass"
+            label="Password"
+            type="password"
             id="pass"
             autoComplete="current-password"
           />
-          <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
-          />
-          <Button
+          <Button 
             type="submit"
             fullWidth
             variant="contained"
@@ -225,8 +246,8 @@ export default function Page() {
 
           <Grid container>
             <Grid item xs>
-              <Link href="#" variant="body2">
-                Forgot password?
+              <Link href="/forgotpass" variant="body2">
+              {"Forgot password?"}
               </Link>
             </Grid>
             <Grid item>
@@ -236,8 +257,8 @@ export default function Page() {
             </Grid>
           </Grid>
         </Box>
-      </Box>
-
+          </Box>
+          </div>
     </Container>
             </div>
     </ThemeProvider>
