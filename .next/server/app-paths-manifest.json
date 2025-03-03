@@ -1,0 +1,8 @@
+{
+  "/page": "app/page.js",
+  "/calendar/page": "app/calendar/page.js",
+  "/scanner/barcode/page": "app/scanner/barcode/page.js",
+  "/scanner/nutritioninfo/page": "app/scanner/nutritioninfo/page.js",
+  "/homepage/page": "app/homepage/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js"
+}
