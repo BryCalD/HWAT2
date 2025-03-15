@@ -10,21 +10,16 @@
       "static/chunks/main-app.js",
       "static/chunks/app/layout.js"
     ],
+    "/scanner/barcode/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/scanner/barcode/page.js"
+    ],
     "/calendar/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/calendar/page.css",
       "static/chunks/app/calendar/page.js"
-    ],
-    "/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/login/page.js"
-    ],
-    "/not-found": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/not-found.js"
     ]
   }
 }

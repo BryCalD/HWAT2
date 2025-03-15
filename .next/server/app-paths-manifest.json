@@ -1,8 +1,6 @@
 {
-  "/not-found": "app/not-found.js",
   "/page": "app/page.js",
   "/calendar/page": "app/calendar/page.js",
-  "/login/page": "app/login/page.js",
-  "/api/login/route": "app/api/login/route.js",
+  "/scanner/barcode/page": "app/scanner/barcode/page.js",
   "/api/getScannedItems/route": "app/api/getScannedItems/route.js"
 }
