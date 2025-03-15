@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/library';
-import Cookies from 'universal-cookie'; // Import universal-cookie
+import Cookies from 'universal-cookie'; 
 import CustomAppBar from '../../components/ResponsiveAppBarScanner';
 import { fetchFoodInfo } from '../../api/barcode/barcode';
 
@@ -33,32 +33,47 @@ const BarcodePage = () => {
   const dailyFatsRecommendation = 70;
   const dailySugarRecommendation = 25;
 
-  // Load scanned items from localStorage on component mount
+  // Load scanned items from the database on component mount
   useEffect(() => {
-    const savedData = localStorage.getItem('scannedItems');
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      const { scannedItems } = parsedData;
-      setScannedItems(scannedItems);
+    const fetchScannedItems = async () => {
+      const username = cookies.get('username'); // Get the username from cookies
 
-      const totals = scannedItems.reduce(
-        (acc, item) => {
-          acc.calories += item.calories;
-          acc.protein += item.protein;
-          acc.carbs += item.carbs;
-          acc.fats += item.fats;
-          acc.sugar += item.sugar;
-          return acc;
-        },
-        { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0 }
-      );
+      try {
+        const response = await fetch(`/api/getScannedItems?username=${username}`);
+        if (response.ok) {
+          const data = await response.json();
+          const { scannedItems } = data;
 
-      setTotalCalories(totals.calories);
-      setTotalProtein(totals.protein);
-      setTotalCarbs(totals.carbs);
-      setTotalFats(totals.fats);
-      setTotalSugar(totals.sugar);
-    }
+          // Update the state with the fetched scanned items
+          setScannedItems(scannedItems);
+
+          // Calculate totals
+          const totals = scannedItems.reduce(
+            (acc, item) => {
+              acc.calories += item.calories;
+              acc.protein += item.protein;
+              acc.carbs += item.carbs;
+              acc.fats += item.fats;
+              acc.sugar += item.sugar;
+              return acc;
+            },
+            { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0 }
+          );
+
+          setTotalCalories(totals.calories);
+          setTotalProtein(totals.protein);
+          setTotalCarbs(totals.carbs);
+          setTotalFats(totals.fats);
+          setTotalSugar(totals.sugar);
+        } else {
+          console.error('Failed to fetch scanned items from the database.');
+        }
+      } catch (error) {
+        console.error('Error fetching scanned items:', error);
+      }
+    };
+
+    fetchScannedItems();
   }, []);
 
   const handleBarcodeScan = async (barcode) => {

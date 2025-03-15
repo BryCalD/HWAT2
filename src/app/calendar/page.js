@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import Cookies from 'universal-cookie'; // Import universal-cookie
 import CustomAppBar from '../components/ResponsiveAppBarCalendar'; // Import the AppBar component
 
 const CalendarPage = () => {
@@ -9,6 +10,7 @@ const CalendarPage = () => {
   const [dailyIntake, setDailyIntake] = useState({}); // Store daily intake data
   const [appBarHeight, setAppBarHeight] = useState(100); // Default height to avoid layout shift
   const appBarRef = useRef(null); // Ref to measure AppBar height
+  const cookies = new Cookies(); // Initialize the cookies object
 
   // Measure the height of the AppBar after it renders
   useLayoutEffect(() => {
@@ -17,30 +19,49 @@ const CalendarPage = () => {
     }
   }, []);
 
-  // Load saved intake data from localStorage
+  // Load saved intake data from the database
   useEffect(() => {
-    const savedData = localStorage.getItem('scannedItems');
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      const { date, scannedItems } = parsedData;
-  
-      // Group items by date and calculate daily intake
-      const intakeData = scannedItems.reduce((acc, item) => {
-        const itemDate = item.date; // Use the date property of the item
-        if (!acc[itemDate]) {
-          acc[itemDate] = { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0 };
+    const fetchScannedItems = async () => {
+      const username = cookies.get('username'); // Get the username from cookies
+
+      if (!username) {
+        // If no username is found, reset the state
+        setDailyIntake({});
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/getScannedItems?username=${username}`);
+        if (response.ok) {
+          const data = await response.json();
+          const { scannedItems } = data;
+
+          // Group items by date and calculate daily intake
+          const intakeData = scannedItems.reduce((acc, item) => {
+            const itemDate = item.date; // Use the date property of the item
+            if (!acc[itemDate]) {
+              acc[itemDate] = { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0 };
+            }
+            acc[itemDate].calories += item.calories;
+            acc[itemDate].protein += item.protein;
+            acc[itemDate].carbs += item.carbs;
+            acc[itemDate].fats += item.fats;
+            acc[itemDate].sugar += item.sugar;
+            return acc;
+          }, {});
+
+          setDailyIntake(intakeData);
+        } else {
+          console.error('Failed to fetch scanned items from the database.');
         }
-        acc[itemDate].calories += item.calories;
-        acc[itemDate].protein += item.protein;
-        acc[itemDate].carbs += item.carbs;
-        acc[itemDate].fats += item.fats;
-        acc[itemDate].sugar += item.sugar;
-        return acc;
-      }, {});
-  
-      setDailyIntake(intakeData);
-    }
-  }, []);
+      } catch (error) {
+        console.error('Error fetching scanned items:', error);
+      }
+    };
+
+    fetchScannedItems();
+  }, []); // Fetch data when the component mounts
+
   // Format date as YYYY-MM-DD
   const formatDate = (date) => {
     return date.toISOString().split('T')[0];
