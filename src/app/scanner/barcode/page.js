@@ -1,20 +1,22 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/library';
+import Cookies from 'universal-cookie'; // Import universal-cookie
 import CustomAppBar from '../../components/ResponsiveAppBarScanner';
 import { fetchFoodInfo } from '../../api/barcode/barcode';
 
 const BarcodePage = () => {
+  const cookies = new Cookies(); // Initialize the cookies object
   const [data, setData] = useState('No result');
-  const [currentItem, setCurrentItem] = useState(null); // Temporarily store the scanned item
-  const [scannedItems, setScannedItems] = useState([]); // List of scanned items
+  const [currentItem, setCurrentItem] = useState(null);
+  const [scannedItems, setScannedItems] = useState([]);
   const [totalCalories, setTotalCalories] = useState(0);
-  const [totalProtein, setTotalProtein] = useState(0); // Total protein
-  const [totalCarbs, setTotalCarbs] = useState(0); // Total carbs
-  const [totalFats, setTotalFats] = useState(0); // Total fats
-  const [totalSugar, setTotalSugar] = useState(0); // Total sugar
+  const [totalProtein, setTotalProtein] = useState(0);
+  const [totalCarbs, setTotalCarbs] = useState(0);
+  const [totalFats, setTotalFats] = useState(0);
+  const [totalSugar, setTotalSugar] = useState(0);
   const [error, setError] = useState(null);
-  const [showManualInput, setShowManualInput] = useState(false); // State to toggle manual input form
+  const [showManualInput, setShowManualInput] = useState(false);
   const [manualInput, setManualInput] = useState({
     name: '',
     calories: 0,
@@ -26,20 +28,19 @@ const BarcodePage = () => {
 
   // Recommended daily intake values
   const dailyCalorieLimit = 2000;
-  const dailyProteinRecommendation = 50; // Recommended protein intake in grams
-  const dailyCarbsRecommendation = 300; // Recommended carbs intake in grams
-  const dailyFatsRecommendation = 70; // Recommended fats intake in grams
-  const dailySugarRecommendation = 25; // Recommended sugar intake in grams (WHO guideline)
+  const dailyProteinRecommendation = 50;
+  const dailyCarbsRecommendation = 300;
+  const dailyFatsRecommendation = 70;
+  const dailySugarRecommendation = 25;
 
   // Load scanned items from localStorage on component mount
   useEffect(() => {
     const savedData = localStorage.getItem('scannedItems');
     if (savedData) {
       const parsedData = JSON.parse(savedData);
-      const { scannedItems } = parsedData; // Extract the scannedItems array
+      const { scannedItems } = parsedData;
       setScannedItems(scannedItems);
-  
-      // Calculate totals from saved items
+
       const totals = scannedItems.reduce(
         (acc, item) => {
           acc.calories += item.calories;
@@ -51,7 +52,7 @@ const BarcodePage = () => {
         },
         { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0 }
       );
-  
+
       setTotalCalories(totals.calories);
       setTotalProtein(totals.protein);
       setTotalCarbs(totals.carbs);
@@ -161,15 +162,34 @@ const BarcodePage = () => {
     setShowManualInput(false);
   };
 
-  // Save scanned items to localStorage when the Save button is clicked
-  const saveToLocalStorage = () => {
+  const saveToLocalStorage = async () => {
+    const cookies = new Cookies(); // Initialize the cookies object
+    const username = cookies.get('username'); // Access the username cookie
     const today = new Date().toISOString().split('T')[0]; // Get the current date in YYYY-MM-DD format
     const dataToSave = {
-      date: today, // Include the current date
-      scannedItems: scannedItems, // Include the scanned items
+      username, // Include the username to associate with the user
+      date: today,
+      scannedItems: scannedItems,
     };
-    localStorage.setItem('scannedItems', JSON.stringify(dataToSave));
-    alert('Scanned items saved successfully!');
+  
+    try {
+      const response = await fetch('/api/savetoDatabase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSave),
+      });
+  
+      if (response.ok) {
+        alert('Scanned items saved successfully!');
+      } else {
+        alert('Failed to save scanned items to the database.');
+      }
+    } catch (error) {
+      console.error('Error saving scanned items:', error);
+      alert('Error saving scanned items to the database.');
+    }
   };
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-// File: C:\stuff\school\Github\HealthWebApp\src\app\homepage\page.js
+// File: C:\stuff\school\Github\HWATest\src\app\homepage\page.js
 import * as entry from '../../../../src/app/homepage/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

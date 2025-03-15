@@ -1,4 +1,4 @@
-// File: C:\stuff\school\Github\HealthWebApp\src\app\scanner\barcode\page.js
+// File: C:\stuff\school\Github\HWATest\src\app\scanner\barcode\page.js
 import * as entry from '../../../../../src/app/scanner/barcode/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
