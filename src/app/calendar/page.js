@@ -7,6 +7,7 @@ import CustomAppBar from '../components/ResponsiveAppBarCalendar'; // Import the
 
 const CalendarPage = () => {
   const [date, setDate] = useState(new Date()); // Selected date
+  const [username, setUsername] = useState(''); // Track username as state
   const [dailyIntake, setDailyIntake] = useState({}); // Store daily intake data
   const [appBarHeight, setAppBarHeight] = useState(100); // Default height to avoid layout shift
   const appBarRef = useRef(null); // Ref to measure AppBar height
@@ -19,7 +20,7 @@ const CalendarPage = () => {
     }
   }, []);
 
-  // Load saved intake data from the database
+  // Fetch scanned items when username changes
   useEffect(() => {
     const fetchScannedItems = async () => {
       const username = cookies.get('username'); // Get the username from cookies
@@ -36,9 +37,11 @@ const CalendarPage = () => {
           const data = await response.json();
           const { scannedItems } = data;
 
+          console.log('Fetched scanned items:', scannedItems);
+
           // Group items by date and calculate daily intake
           const intakeData = scannedItems.reduce((acc, item) => {
-            const itemDate = item.date; // Use the date property of the item
+            const itemDate = new Date(item.date).toISOString().split('T')[0]; // Ensure consistent date format
             if (!acc[itemDate]) {
               acc[itemDate] = { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0 };
             }
@@ -50,6 +53,7 @@ const CalendarPage = () => {
             return acc;
           }, {});
 
+          console.log('Processed daily intake:', intakeData);
           setDailyIntake(intakeData);
         } else {
           console.error('Failed to fetch scanned items from the database.');
@@ -60,7 +64,7 @@ const CalendarPage = () => {
     };
 
     fetchScannedItems();
-  }, []); // Fetch data when the component mounts
+  }, [cookies.get('username')]); // Fetch data only when username changes
 
   // Format date as YYYY-MM-DD
   const formatDate = (date) => {
@@ -148,5 +152,3 @@ const CalendarPage = () => {
 };
 
 export default CalendarPage;
-
-//vercel fix checker

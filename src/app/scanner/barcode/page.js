@@ -8,6 +8,7 @@ import { fetchFoodInfo } from '../../api/barcode/barcode';
 const BarcodePage = () => {
   const cookies = new Cookies(); // Initialize the cookies object
   const [data, setData] = useState('No result');
+  const [username, setUsername] = useState(cookies.get('username') || ''); // Track username as state
   const [currentItem, setCurrentItem] = useState(null);
   const [scannedItems, setScannedItems] = useState([]);
   const [totalCalories, setTotalCalories] = useState(0);
@@ -33,48 +34,57 @@ const BarcodePage = () => {
   const dailyFatsRecommendation = 70;
   const dailySugarRecommendation = 25;
 
-  // Load scanned items from the database on component mount
-  useEffect(() => {
-    const fetchScannedItems = async () => {
-      const username = cookies.get('username'); // Get the username from cookies
-
-      try {
-        const response = await fetch(`/api/getScannedItems?username=${username}`);
-        if (response.ok) {
-          const data = await response.json();
-          const { scannedItems } = data;
-
-          // Update the state with the fetched scanned items
-          setScannedItems(scannedItems);
-
-          // Calculate totals
-          const totals = scannedItems.reduce(
-            (acc, item) => {
-              acc.calories += item.calories;
-              acc.protein += item.protein;
-              acc.carbs += item.carbs;
-              acc.fats += item.fats;
-              acc.sugar += item.sugar;
-              return acc;
-            },
-            { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0 }
-          );
-
-          setTotalCalories(totals.calories);
-          setTotalProtein(totals.protein);
-          setTotalCarbs(totals.carbs);
-          setTotalFats(totals.fats);
-          setTotalSugar(totals.sugar);
-        } else {
-          console.error('Failed to fetch scanned items from the database.');
+    // Fetch scanned items when username changes
+    useEffect(() => {
+      const fetchScannedItems = async () => {
+        if (!username) {
+          // If no username is found, reset the state
+          setScannedItems([]);
+          setTotalCalories(0);
+          setTotalProtein(0);
+          setTotalCarbs(0);
+          setTotalFats(0);
+          setTotalSugar(0);
+          return;
         }
-      } catch (error) {
-        console.error('Error fetching scanned items:', error);
-      }
-    };
-
-    fetchScannedItems();
-  }, []);
+  
+        try {
+          const response = await fetch(`/api/getScannedItems?username=${username}`);
+          if (response.ok) {
+            const data = await response.json();
+            const { scannedItems } = data;
+  
+            // Update the state with the fetched scanned items
+            setScannedItems(scannedItems);
+  
+            // Calculate totals
+            const totals = scannedItems.reduce(
+              (acc, item) => {
+                acc.calories += item.calories;
+                acc.protein += item.protein;
+                acc.carbs += item.carbs;
+                acc.fats += item.fats;
+                acc.sugar += item.sugar;
+                return acc;
+              },
+              { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0 }
+            );
+  
+            setTotalCalories(totals.calories);
+            setTotalProtein(totals.protein);
+            setTotalCarbs(totals.carbs);
+            setTotalFats(totals.fats);
+            setTotalSugar(totals.sugar);
+          } else {
+            console.error('Failed to fetch scanned items from the database.');
+          }
+        } catch (error) {
+          console.error('Error fetching scanned items:', error);
+        }
+      };
+  
+      fetchScannedItems();
+    }, [username]); // Fetch data only when username changes
 
   const handleBarcodeScan = async (barcode) => {
     try {

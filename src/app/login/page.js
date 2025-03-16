@@ -208,7 +208,7 @@ export default function Page() {
           
         </Avatar>
         <Typography component="h1" variant="h5">
-          Let's get you signed in, User
+          Lets get you signed in, User
           <hr/>
         </Typography>
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>

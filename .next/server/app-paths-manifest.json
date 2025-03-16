@@ -2,5 +2,8 @@
   "/page": "app/page.js",
   "/calendar/page": "app/calendar/page.js",
   "/scanner/barcode/page": "app/scanner/barcode/page.js",
+  "/login/page": "app/login/page.js",
+  "/homepage/page": "app/homepage/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
   "/api/getScannedItems/route": "app/api/getScannedItems/route.js"
 }
