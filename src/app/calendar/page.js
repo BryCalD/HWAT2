@@ -9,6 +9,7 @@ const CalendarPage = () => {
   const [date, setDate] = useState(new Date()); // Selected date
   const [username, setUsername] = useState(''); // Track username as state
   const [dailyIntake, setDailyIntake] = useState({}); // Store daily intake data
+  const [scannedItems, setScannedItems] = useState([]); // Store all scanned items
   const [appBarHeight, setAppBarHeight] = useState(100); // Default height to avoid layout shift
   const appBarRef = useRef(null); // Ref to measure AppBar height
   const cookies = new Cookies(); // Initialize the cookies object
@@ -28,11 +29,12 @@ const CalendarPage = () => {
       if (!username) {
         // If no username is found, reset the state
         setDailyIntake({});
+        setScannedItems([]);
         return;
       }
 
       try {
-        const response = await fetch(`/api/getScannedItems?username=${username}`);
+        const response = await fetch(`/api/getScannedItemsCalendar?username=${username}`);
         if (response.ok) {
           const data = await response.json();
           const { scannedItems } = data;
@@ -43,18 +45,20 @@ const CalendarPage = () => {
           const intakeData = scannedItems.reduce((acc, item) => {
             const itemDate = new Date(item.date).toISOString().split('T')[0]; // Ensure consistent date format
             if (!acc[itemDate]) {
-              acc[itemDate] = { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0 };
+              acc[itemDate] = { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0, items: [] };
             }
             acc[itemDate].calories += item.calories;
             acc[itemDate].protein += item.protein;
             acc[itemDate].carbs += item.carbs;
             acc[itemDate].fats += item.fats;
             acc[itemDate].sugar += item.sugar;
+            acc[itemDate].items.push(item); // Store the individual food item
             return acc;
           }, {});
 
           console.log('Processed daily intake:', intakeData);
           setDailyIntake(intakeData);
+          setScannedItems(scannedItems); // Store all scanned items
         } else {
           console.error('Failed to fetch scanned items from the database.');
         }
@@ -80,6 +84,7 @@ const CalendarPage = () => {
       carbs: 0,
       fats: 0,
       sugar: 0,
+      items: [], // Include an empty array for items
     };
   };
 
@@ -94,6 +99,16 @@ const CalendarPage = () => {
         <p><strong>Carbs:</strong> {intake.carbs} g</p>
         <p><strong>Fats:</strong> {intake.fats} g</p>
         <p><strong>Sugar:</strong> {intake.sugar} g</p>
+
+        {/* Display the list of food items */}
+        <h4>Food Items Consumed:</h4>
+        <ul>
+          {intake.items.map((item, index) => (
+            <li key={index}>
+              <strong>{item.name}</strong>: {item.calories} kcal, {item.protein}g protein, {item.carbs}g carbs, {item.fats}g fats, {item.sugar}g sugar
+            </li>
+          ))}
+        </ul>
       </div>
     );
   };
