@@ -2,32 +2,29 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import Cookies from 'universal-cookie'; // Import universal-cookie
-import CustomAppBar from '../components/ResponsiveAppBarCalendar'; // Import the AppBar component
+import Cookies from 'universal-cookie';
+import CustomAppBar from '../components/ResponsiveAppBarCalendar';
 
 const CalendarPage = () => {
-  const [date, setDate] = useState(new Date()); // Selected date
-  const [username, setUsername] = useState(''); // Track username as state
-  const [dailyIntake, setDailyIntake] = useState({}); // Store daily intake data
-  const [scannedItems, setScannedItems] = useState([]); // Store all scanned items
-  const [appBarHeight, setAppBarHeight] = useState(100); // Default height to avoid layout shift
-  const appBarRef = useRef(null); // Ref to measure AppBar height
-  const cookies = new Cookies(); // Initialize the cookies object
+  const [date, setDate] = useState(new Date());
+  const [username, setUsername] = useState('');
+  const [dailyIntake, setDailyIntake] = useState({});
+  const [scannedItems, setScannedItems] = useState([]);
+  const [appBarHeight, setAppBarHeight] = useState(100);
+  const appBarRef = useRef(null);
+  const cookies = new Cookies();
 
-  // Measure the height of the AppBar after it renders
   useLayoutEffect(() => {
     if (appBarRef.current) {
       setAppBarHeight(appBarRef.current.offsetHeight);
     }
   }, []);
 
-  // Fetch scanned items when username changes
   useEffect(() => {
     const fetchScannedItems = async () => {
-      const username = cookies.get('username'); // Get the username from cookies
+      const username = cookies.get('username');
 
       if (!username) {
-        // If no username is found, reset the state
         setDailyIntake({});
         setScannedItems([]);
         return;
@@ -41,24 +38,37 @@ const CalendarPage = () => {
 
           console.log('Fetched scanned items:', scannedItems);
 
-          // Group items by date and calculate daily intake
-          const intakeData = scannedItems.reduce((acc, item) => {
-            const itemDate = new Date(item.date).toISOString().split('T')[0]; // Ensure consistent date format
-            if (!acc[itemDate]) {
-              acc[itemDate] = { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0, items: [] };
+          // Process the nested structure
+          const intakeData = {};
+          
+          scannedItems.forEach(entry => {
+            const entryDate = new Date(entry.date).toISOString().split('T')[0];
+            
+            if (!intakeData[entryDate]) {
+              intakeData[entryDate] = { 
+                calories: 0, 
+                protein: 0, 
+                carbs: 0, 
+                fats: 0, 
+                sugar: 0, 
+                items: [] 
+              };
             }
-            acc[itemDate].calories += item.calories;
-            acc[itemDate].protein += item.protein;
-            acc[itemDate].carbs += item.carbs;
-            acc[itemDate].fats += item.fats;
-            acc[itemDate].sugar += item.sugar;
-            acc[itemDate].items.push(item); // Store the individual food item
-            return acc;
-          }, {});
+
+            // Sum up all items for this date
+            entry.items.forEach(item => {
+              intakeData[entryDate].calories += item.calories;
+              intakeData[entryDate].protein += item.protein;
+              intakeData[entryDate].carbs += item.carbs;
+              intakeData[entryDate].fats += item.fats;
+              intakeData[entryDate].sugar += item.sugar;
+              intakeData[entryDate].items.push(item);
+            });
+          });
 
           console.log('Processed daily intake:', intakeData);
           setDailyIntake(intakeData);
-          setScannedItems(scannedItems); // Store all scanned items
+          setScannedItems(scannedItems);
         } else {
           console.error('Failed to fetch scanned items from the database.');
         }
@@ -68,14 +78,12 @@ const CalendarPage = () => {
     };
 
     fetchScannedItems();
-  }, [cookies.get('username')]); // Fetch data only when username changes
+  }, [cookies.get('username')]);
 
-  // Format date as YYYY-MM-DD
   const formatDate = (date) => {
     return date.toISOString().split('T')[0];
   };
 
-  // Get intake data for the selected date
   const getIntakeForDate = (date) => {
     const formattedDate = formatDate(date);
     return dailyIntake[formattedDate] || {
@@ -84,11 +92,10 @@ const CalendarPage = () => {
       carbs: 0,
       fats: 0,
       sugar: 0,
-      items: [], // Include an empty array for items
+      items: [],
     };
   };
 
-  // Render intake details for the selected date
   const renderIntakeDetails = () => {
     const intake = getIntakeForDate(date);
     return (
@@ -100,7 +107,6 @@ const CalendarPage = () => {
         <p><strong>Fats:</strong> {intake.fats} g</p>
         <p><strong>Sugar:</strong> {intake.sugar} g</p>
 
-        {/* Display the list of food items */}
         <h4>Food Items Consumed:</h4>
         <ul>
           {intake.items.map((item, index) => (
@@ -115,22 +121,19 @@ const CalendarPage = () => {
 
   return (
     <div>
-      {/* Add the CustomAppBar at the top */}
       <div ref={appBarRef}>
         <CustomAppBar />
       </div>
 
-      {/* Main content */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'flex-start', 
-        marginTop: `${appBarHeight + 100}px`, // Use dynamic marginTop based on AppBar height
+        marginTop: `${appBarHeight + 100}px`,
         padding: '20px', 
         maxWidth: '1200px', 
         margin: '0 auto' 
       }}>
-        {/* Calendar */}
         <div style={{ flex: 2, maxWidth: '800px' }}>
           <Calendar
             onChange={setDate}
@@ -152,12 +155,11 @@ const CalendarPage = () => {
             style={{ 
               width: '100%', 
               height: 'auto', 
-              fontSize: '16px' // Increase font size for better readability
+              fontSize: '16px'
             }}
           />
         </div>
 
-        {/* Intake details for the selected date */}
         <div style={{ flex: 1, minWidth: '300px' }}>
           {renderIntakeDetails()}
         </div>

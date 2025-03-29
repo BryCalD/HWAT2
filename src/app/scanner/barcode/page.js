@@ -37,7 +37,6 @@ const BarcodePage = () => {
   useEffect(() => {
     const fetchScannedItems = async () => {
       if (!username) {
-        // If no username is found, reset the state
         setScannedItems([]);
         setTotalCalories(0);
         setTotalProtein(0);
@@ -53,26 +52,17 @@ const BarcodePage = () => {
           const data = await response.json();
           const { scannedItems } = data;
   
-          // Get the current date in the same format as stored in the database
-          const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+          // Update the state with the scanned items
+          setScannedItems(scannedItems);
   
-          // Filter scanned items to include only those from the current day
-          const todayItems = scannedItems.filter(item => {
-            const itemDate = new Date(item.date).toISOString().split('T')[0];
-            return itemDate === currentDate;
-          });
-  
-          // Update the state with the filtered scanned items
-          setScannedItems(todayItems);
-  
-          // Calculate totals
-          const totals = todayItems.reduce(
+          // Calculate totals - now working with direct items array
+          const totals = scannedItems.reduce(
             (acc, item) => {
-              acc.calories += item.calories;
-              acc.protein += item.protein;
-              acc.carbs += item.carbs;
-              acc.fats += item.fats;
-              acc.sugar += item.sugar;
+              acc.calories += Number(item.calories) || 0;
+              acc.protein += Number(item.protein) || 0;
+              acc.carbs += Number(item.carbs) || 0;
+              acc.fats += Number(item.fats) || 0;
+              acc.sugar += Number(item.sugar) || 0;
               return acc;
             },
             { calories: 0, protein: 0, carbs: 0, fats: 0, sugar: 0 }
@@ -195,14 +185,14 @@ const BarcodePage = () => {
     setShowManualInput(false);
   };
 
-  const saveToLocalStorage = async () => {
-    const cookies = new Cookies(); // Initialize the cookies object
-    const username = cookies.get('username'); // Access the username cookie
-    const today = new Date().toISOString().split('T')[0]; // Get the current date in YYYY-MM-DD format
+  const saveToDatabase = async () => {
+    const cookies = new Cookies();
+    const username = cookies.get('username');
+    const today = new Date().toISOString().split('T')[0];
     const dataToSave = {
-      username, // Include the username to associate with the user
+      username,
       date: today,
-      scannedItems: scannedItems,
+      scannedItems: scannedItems, // This should be an array of items
     };
   
     try {
@@ -223,7 +213,7 @@ const BarcodePage = () => {
       console.error('Error saving scanned items:', error);
       alert('Error saving scanned items to the database.');
     }
-  };
+};
 
   useEffect(() => {
     const codeReader = new BrowserMultiFormatReader();
@@ -336,7 +326,7 @@ const BarcodePage = () => {
 
         {/* Save Button */}
         <button
-          onClick={saveToLocalStorage}
+          onClick={saveToDatabase}
           style={{
             marginTop: '10px',
             marginLeft: '10px',
