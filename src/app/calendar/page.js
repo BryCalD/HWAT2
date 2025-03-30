@@ -4,6 +4,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import Cookies from 'universal-cookie';
 import CustomAppBar from '../components/ResponsiveAppBarCalendar';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const CalendarPage = () => {
   const [date, setDate] = useState(new Date());
@@ -13,6 +14,15 @@ const CalendarPage = () => {
   const [appBarHeight, setAppBarHeight] = useState(100);
   const appBarRef = useRef(null);
   const cookies = new Cookies();
+
+  // Colors for the charts
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+  const MACRO_COLORS = {
+    protein: '#0088FE',
+    carbs: '#00C49F',
+    fats: '#FFBB28',
+    sugar: '#FF8042'
+  };
 
   useLayoutEffect(() => {
     if (appBarRef.current) {
@@ -38,7 +48,6 @@ const CalendarPage = () => {
 
           console.log('Fetched scanned items:', scannedItems);
 
-          // Process the nested structure
           const intakeData = {};
           
           scannedItems.forEach(entry => {
@@ -55,13 +64,12 @@ const CalendarPage = () => {
               };
             }
 
-            // Sum up all items for this date
             entry.items.forEach(item => {
-              intakeData[entryDate].calories += item.calories;
-              intakeData[entryDate].protein += item.protein;
-              intakeData[entryDate].carbs += item.carbs;
-              intakeData[entryDate].fats += item.fats;
-              intakeData[entryDate].sugar += item.sugar;
+              intakeData[entryDate].calories += Number(item.calories) || 0;
+              intakeData[entryDate].protein += Number(item.protein) || 0;
+              intakeData[entryDate].carbs += Number(item.carbs) || 0;
+              intakeData[entryDate].fats += Number(item.fats) || 0;
+              intakeData[entryDate].sugar += Number(item.sugar) || 0;
               intakeData[entryDate].items.push(item);
             });
           });
@@ -96,25 +104,105 @@ const CalendarPage = () => {
     };
   };
 
+  // Prepare data for charts
+  const prepareChartData = (intake) => {
+    // Macronutrient bar chart data
+    const macroData = [
+      { name: 'Protein', value: intake.protein, fill: MACRO_COLORS.protein },
+      { name: 'Carbs', value: intake.carbs, fill: MACRO_COLORS.carbs },
+      { name: 'Fats', value: intake.fats, fill: MACRO_COLORS.fats },
+      { name: 'Sugar', value: intake.sugar, fill: MACRO_COLORS.sugar },
+    ];
+
+    // Calorie breakdown pie chart data
+    const calorieData = [
+      { name: 'Protein', value: intake.protein * 4 }, // 4 calories per gram
+      { name: 'Carbs', value: intake.carbs * 4 },     // 4 calories per gram
+      { name: 'Fats', value: intake.fats * 9 },       // 9 calories per gram
+    ].filter(item => item.value > 0); // Only show if there are calories
+
+    return { macroData, calorieData };
+  };
+
   const renderIntakeDetails = () => {
     const intake = getIntakeForDate(date);
+    const { macroData, calorieData } = prepareChartData(intake);
+
     return (
       <div style={{ marginLeft: '20px', padding: '20px', borderLeft: '1px solid #ddd' }}>
         <h3>Intake for {date.toDateString()}</h3>
-        <p><strong>Calories:</strong> {intake.calories} kcal</p>
-        <p><strong>Protein:</strong> {intake.protein} g</p>
-        <p><strong>Carbs:</strong> {intake.carbs} g</p>
-        <p><strong>Fats:</strong> {intake.fats} g</p>
-        <p><strong>Sugar:</strong> {intake.sugar} g</p>
+        
+        {/* Nutrition Summary */}
+        <div style={{ marginBottom: '20px' }}>
+          <p><strong>Total Calories:</strong> {intake.calories} kcal</p>
+          <p><strong>Protein:</strong> {intake.protein} g</p>
+          <p><strong>Carbs:</strong> {intake.carbs} g</p>
+          <p><strong>Fats:</strong> {intake.fats} g</p>
+          <p><strong>Sugar:</strong> {intake.sugar} g</p>
+        </div>
 
-        <h4>Food Items Consumed:</h4>
-        <ul>
-          {intake.items.map((item, index) => (
-            <li key={index}>
-              <strong>{item.name}</strong>: {item.calories} kcal, {item.protein}g protein, {item.carbs}g carbs, {item.fats}g fats, {item.sugar}g sugar
-            </li>
-          ))}
-        </ul>
+        {/* Macronutrient Bar Chart */}
+        <div style={{ height: '300px', marginBottom: '30px' }}>
+          <h4>Macronutrients (grams)</h4>
+          <ResponsiveContainer width="100%" height="80%">
+            <BarChart
+              data={macroData}
+              layout="vertical"
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis dataKey="name" type="category" />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" name="Grams">
+                {macroData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Calorie Breakdown Pie Chart */}
+        <div style={{ height: '300px' }}>
+          <h4>Calorie Breakdown</h4>
+          <ResponsiveContainer width="100%" height="80%">
+            <PieChart>
+              <Pie
+                data={calorieData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              >
+                {calorieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                formatter={(value, name) => [`${value} kcal`, name]}
+              />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Food Items List */}
+        <div style={{ marginTop: '30px' }}>
+          <h4>Food Items Consumed:</h4>
+          <ul>
+            {intake.items.map((item, index) => (
+              <li key={index}>
+                <strong>{item.name}</strong>: {item.calories} kcal, {item.protein}g protein, {item.carbs}g carbs, {item.fats}g fats, {item.sugar}g sugar
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     );
   };
