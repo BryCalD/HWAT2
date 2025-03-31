@@ -51,7 +51,8 @@ const CalendarPage = () => {
           const intakeData = {};
           
           scannedItems.forEach(entry => {
-            const entryDate = new Date(entry.date).toISOString().split('T')[0];
+            // Use the date string directly from DB (already in YYYY-MM-DD format)
+            const entryDate = entry.date; 
             
             if (!intakeData[entryDate]) {
               intakeData[entryDate] = { 
@@ -63,7 +64,7 @@ const CalendarPage = () => {
                 items: [] 
               };
             }
-
+            
             entry.items.forEach(item => {
               intakeData[entryDate].calories += Number(item.calories) || 0;
               intakeData[entryDate].protein += Number(item.protein) || 0;
@@ -89,8 +90,19 @@ const CalendarPage = () => {
   }, [cookies.get('username')]);
 
   const formatDate = (date) => {
-    return date.toISOString().split('T')[0];
+    // Force UTC interpretation of the date
+    const utcDate = new Date(Date.UTC(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    ));
+    return utcDate.toISOString().split('T')[0];
   };
+
+const getCurrentUTCDate = () => {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+};
 
   const getIntakeForDate = (date) => {
     const formattedDate = formatDate(date);
@@ -223,29 +235,38 @@ const CalendarPage = () => {
         margin: '0 auto' 
       }}>
         <div style={{ flex: 2, maxWidth: '800px' }}>
-          <Calendar
-            onChange={setDate}
-            value={date}
-            tileContent={({ date, view }) => {
-              if (view === 'month') {
-                const intake = getIntakeForDate(date);
-                return (
-                  <div style={{ fontSize: '12px', textAlign: 'center' }}>
-                    <p>{intake.calories} kcal</p>
-                    <p>{intake.protein} g</p>
-                    <p>{intake.carbs} g</p>
-                    <p>{intake.fats} g</p>
-                    <p>{intake.sugar} g</p>
-                  </div>
-                );
-              }
-            }}
-            style={{ 
-              width: '100%', 
-              height: 'auto', 
-              fontSize: '16px'
-            }}
-          />
+        <Calendar
+          onChange={setDate}
+          value={date}
+          tileContent={({ date, view }) => {
+            if (view === 'month') {
+              // Create a UTC date for lookup
+              const lookupDate = new Date(Date.UTC(
+                date.getFullYear(),
+                date.getMonth(),
+                date.getDate()
+              ));
+              const formattedDate = formatDate(lookupDate);
+              const intake = dailyIntake[formattedDate] || {
+                calories: 0,
+                protein: 0,
+                carbs: 0,
+                fats: 0,
+                sugar: 0
+              };
+              
+              return (
+                <div style={{ fontSize: '12px', textAlign: 'center' }}>
+                  <p>{intake.calories} kcal</p>
+                  <p>{intake.protein} g</p>
+                  <p>{intake.carbs} g</p>
+                  <p>{intake.fats} g</p>
+                  <p>{intake.sugar} g</p>
+                </div>
+              );
+            }
+          }}
+        />
         </div>
 
         <div style={{ flex: 1, minWidth: '300px' }}>

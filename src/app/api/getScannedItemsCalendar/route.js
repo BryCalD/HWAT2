@@ -2,31 +2,43 @@ import { MongoClient } from 'mongodb';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const username = searchParams.get('username'); // Get the username from query parameters
+  const username = searchParams.get('username');
 
   const url = 'mongodb+srv://mongo:mpass@cluster0.scnjt.mongodb.net/';
   const client = new MongoClient(url);
-  const dbName = 'app'; // database name
+  const dbName = 'app';
 
   try {
     await client.connect();
-    console.log('Connected successfully to server');
     const db = client.db(dbName);
-    const collection = db.collection('login'); // collection name
+    const collection = db.collection('login');
 
-    // Find the user's scanned items
     const userData = await collection.findOne({ username });
 
     if (userData) {
-      // Return the scanned items if found
-      return new Response(JSON.stringify({ scannedItems: userData.scannedItems }), {
+      // Process scanned items to ensure proper date formatting
+      const processedItems = userData.scannedItems.map(entry => {
+        // Convert date string to proper UTC date object
+        const dateObj = new Date(entry.date);
+        const utcDate = new Date(Date.UTC(
+          dateObj.getUTCFullYear(),
+          dateObj.getUTCMonth(),
+          dateObj.getUTCDate()
+        ));
+        
+        return {
+          ...entry,
+          date: utcDate.toISOString().split('T')[0] // Format as YYYY-MM-DD
+        };
+      });
+
+      return new Response(JSON.stringify({ scannedItems: processedItems }), {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
         },
       });
     } else {
-      // Return an empty array if no data is found
       return new Response(JSON.stringify({ scannedItems: [] }), {
         status: 200,
         headers: {

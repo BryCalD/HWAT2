@@ -34,6 +34,18 @@ const BarcodePage = () => {
   const dailyFatsRecommendation = 70;
   const dailySugarRecommendation = 25;
 
+  const getCurrentUTCDate = () => {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  };
+  
+  const formatDate = (date) => {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   useEffect(() => {
     const fetchScannedItems = async () => {
       if (!username) {
@@ -188,11 +200,12 @@ const BarcodePage = () => {
   const saveToDatabase = async () => {
     const cookies = new Cookies();
     const username = cookies.get('username');
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatDate(getCurrentUTCDate()); // Using the UTC functions
+    
     const dataToSave = {
       username,
       date: today,
-      scannedItems: scannedItems, // This should be an array of items
+      scannedItems: scannedItems,
     };
   
     try {
