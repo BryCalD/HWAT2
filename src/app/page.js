@@ -152,7 +152,7 @@ const HomePage = () => {
                     3. Save!
                   </Typography>
                   <Typography variant="body1">
-                  Dont forget to click save after youve completed logging your meals!
+                  Don&apos;t forget to click save after you&apos;ve completed logging your meals!
                   </Typography>
                 </Box>
                 
@@ -178,7 +178,7 @@ const HomePage = () => {
                 }}
                 onClick={handleClose}
               >
-                Got it, lets get started!
+                Got it, let&apos;s get started!
               </Button>
             </Box>
           </Box>
