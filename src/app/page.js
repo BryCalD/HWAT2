@@ -178,7 +178,7 @@ const HomePage = () => {
                 }}
                 onClick={handleClose}
               >
-                {"Got it, let's get started!"}
+                Got it, lets get started!
               </Button>
             </Box>
           </Box>
