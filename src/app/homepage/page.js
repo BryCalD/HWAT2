@@ -152,7 +152,7 @@ const HomePage = () => {
                     3. Save!
                   </Typography>
                   <Typography variant="body1">
-                  Dont forget to click save after you've completed logging your meals!
+                  Dont forget to click save after youve completed logging your meals!
                   </Typography>
                 </Box>
                 
