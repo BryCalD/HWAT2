@@ -152,7 +152,7 @@ const HomePage = () => {
                     3. Save!
                   </Typography>
                   <Typography variant="body1">
-                    Don't forget to click save after you've completed logging your meals!
+                  {"Don't forget to click save after you've completed logging your meals!"}
                   </Typography>
                 </Box>
                 
@@ -161,7 +161,7 @@ const HomePage = () => {
                     4. Track Nutrients
                   </Typography>
                   <Typography variant="body1">
-                    View detailed breakdowns of macronutrients in your personal calendar.
+                    {"View detailed breakdowns of macronutrients in your personal calendar."}
                   </Typography>
                 </Box>
               </Stack>
