@@ -161,7 +161,7 @@ const HomePage = () => {
                     4. Track Nutrients
                   </Typography>
                   <Typography variant="body1">
-                    {"View detailed breakdowns of macronutrients in your personal calendar."}
+                    View detailed breakdowns of macronutrients in your personal calendar.
                   </Typography>
                 </Box>
               </Stack>
@@ -178,7 +178,7 @@ const HomePage = () => {
                 }}
                 onClick={handleClose}
               >
-                Got it, let's get started!
+                {"Got it, let's get started!"}
               </Button>
             </Box>
           </Box>
