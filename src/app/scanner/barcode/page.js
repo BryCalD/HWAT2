@@ -99,24 +99,38 @@ const BarcodePage = () => {
   const handleBarcodeScan = async (barcode) => {
     try {
       const product = await fetchFoodInfo(barcode);
-      const calories = product.nutriments['energy-kcal'] || 0;
-      const protein = product.nutriments['proteins'] || 0;
-      const carbs = product.nutriments['carbohydrates'] || 0;
-      const fats = product.nutriments['fat'] || 0;
-      const sugar = product.nutriments['sugars'] || 0; // Fetch sugar value
-
-      // Temporarily store the scanned item
+      
+      // Calculate per 100g values
+      const calculatePer100g = (value, quantity = 100) => {
+        return value ? (value / quantity) * 100 : 0;
+      };
+  
+      const quantity = product.product_quantity ? parseInt(product.product_quantity) : 100;
+      
+      const caloriesPer100g = calculatePer100g(product.nutriments['energy-kcal'], quantity);
+      const proteinPer100g = calculatePer100g(product.nutriments['proteins'], quantity);
+      const carbsPer100g = calculatePer100g(product.nutriments['carbohydrates'], quantity);
+      const fatsPer100g = calculatePer100g(product.nutriments['fat'], quantity);
+      const sugarPer100g = calculatePer100g(product.nutriments['sugars'], quantity);
+  
+      // Store both the per100g values and the current portion-adjusted values
       setCurrentItem({
         barcode,
         name: product.product_name,
-        calories,
-        protein,
-        carbs,
-        fats,
-        sugar, // Add sugar to the current item
-        date: new Date().toISOString().split('T')[0], // Add the current date
+        caloriesPer100g,
+        proteinPer100g,
+        carbsPer100g,
+        fatsPer100g,
+        sugarPer100g,
+        portionSize: 100, // Default to 100g portion
+        calories: caloriesPer100g,
+        protein: proteinPer100g,
+        carbs: carbsPer100g,
+        fats: fatsPer100g,
+        sugar: sugarPer100g,
+        date: new Date().toISOString().split('T')[0],
       });
-
+  
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -446,6 +460,31 @@ const BarcodePage = () => {
             <p><strong>Carbs:</strong> {currentItem.carbs} g</p>
             <p><strong>Fats:</strong> {currentItem.fats} g</p>
             <p><strong>Sugar:</strong> {currentItem.sugar} g</p>
+            
+            <div style={{ margin: '10px 0' }}>
+              <label>Portion Size (g): </label>
+              <input
+                type="number"
+                value={currentItem.portionSize}
+                onChange={(e) => {
+                  const portionSize = parseFloat(e.target.value) || 100;
+                  const ratio = portionSize / 100;
+                  setCurrentItem({
+                    ...currentItem,
+                    portionSize,
+                    calories: Math.round(currentItem.caloriesPer100g * ratio * 10) / 10,
+                    protein: Math.round(currentItem.proteinPer100g * ratio * 10) / 10,
+                    carbs: Math.round(currentItem.carbsPer100g * ratio * 10) / 10,
+                    fats: Math.round(currentItem.fatsPer100g * ratio * 10) / 10,
+                    sugar: Math.round(currentItem.sugarPer100g * ratio * 10) / 10,
+                  });
+                }}
+                min="1"
+                step="1"
+                style={{ width: '60px', padding: '5px' }}
+              />
+            </div>
+            
             <button
               onClick={addToScannedItems}
               style={{
